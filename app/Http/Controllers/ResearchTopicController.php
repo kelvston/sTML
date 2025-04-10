@@ -121,17 +121,14 @@ class ResearchTopicController extends Controller
         $results = ResearchTopic::with('user:id,name')
             ->get()
             ->map(function ($topic) use ($searchTerm, $pythonScript) {
-                // Execute Python script
                 $command = sprintf(
-                    'python %s %s %s 2>&1',
+                    'python3 %s %s %s 2>&1',
                     escapeshellarg($pythonScript),
                     escapeshellarg($searchTerm),
                     escapeshellarg($topic->title)
                 );
 
-
                 $output = shell_exec($command);
-
                 $result = json_decode($output, true);
 
                 return [
@@ -142,10 +139,11 @@ class ResearchTopicController extends Controller
                     'similarity' => $result['similarity'] ?? 0
                 ];
             })
-            ->filter(fn($topic) => $topic['similarity'] >= 20) // Minimum 20% similarity
+            ->filter(fn($topic) => $topic['similarity'] >= 40)
             ->sortByDesc('similarity')
             ->values();
 
+//        dd($results);
         return response()->json($results);
     }
 

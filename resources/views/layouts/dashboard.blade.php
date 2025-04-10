@@ -6,17 +6,31 @@
     <title>Modern Dashboard</title>
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-
     <style>
+        .sidebar.collapsed .logo {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .logo-icon {
+            font-size: 1.25rem;
+        }
+
         :root {
-            --primary: #4F46E5;
-            --accent: #E0E7FF;
-            --background: #F9FAFB;
-            --sidebar-bg: #FFFFFF;
-            --nav-bg: #FFFFFF;
-            --text-main: #111827;
-            --text-light: #6B7280;
-            --hover-bg: #EEF2FF;
+            --primary: #2563eb;
+            --accent: #eff6ff;
+            --background: #f3f4f6;
+            --sidebar-bg: #ffffff;
+            --nav-bg: #1e40af;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --hover-bg: #e0f2fe;
+        }
+        .navbar.collapsed {
+            left: 72px;
+        }
+
+        .main-content.collapsed {
+            margin-left: 72px;
         }
 
         * {
@@ -35,16 +49,51 @@
             text-decoration: none;
         }
 
-        /* Sidebar */
+        .menu-item.active {
+            background: linear-gradient(to right, var(--primary), #3b82f6);
+            color: white;
+            font-weight: 600;
+        }
+
+        .profile-name .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            min-width: 150px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            z-index: 999;
+            background: white;
+            border-radius: 0.5rem;
+            padding: 0.5rem 0;
+        }
+
+        .dropdown-item {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: var(--text-main);
+            transition: background 0.3s;
+        }
+
+        .dropdown-item:hover {
+            background: var(--hover-bg);
+        }
+
         .sidebar {
             width: 250px;
             height: 100vh;
             position: fixed;
-            background: var(--sidebar-bg);
+            top: 0;
+            /*background: var(--sidebar-bg);*/
             padding: 2rem 1.5rem;
             border-right: 1px solid #e5e7eb;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.02);
+            /*box-shadow: 2px 0 5px rgba(0,0,0,0.02);*/
             z-index: 100;
+        }
+        .sidebar {
+            background: linear-gradient(to bottom, #ffffff, #f9fafb);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
         }
 
         .logo {
@@ -56,7 +105,7 @@
 
         .logo-icon {
             font-size: 1.5rem;
-            background: linear-gradient(45deg, #6366f1, #4f46e5);
+            background: linear-gradient(45deg, #60a5fa, #2563eb);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -87,17 +136,12 @@
             background: var(--hover-bg);
         }
 
-        .menu-item.active {
-            background: var(--primary);
-            color: white;
-        }
-
         .menu-item .icon {
             margin-right: 1rem;
         }
 
         .badge {
-            background: red;
+            background: #ef4444;
             color: white;
             border-radius: 1rem;
             padding: 0.25rem 0.5rem;
@@ -105,7 +149,6 @@
             margin-left: auto;
         }
 
-        /* Navbar */
         .navbar {
             position: fixed;
             left: 250px;
@@ -123,6 +166,7 @@
 
         .nav-title {
             font-weight: bold;
+            color: white;
         }
 
         .profile-section {
@@ -145,13 +189,6 @@
         }
 
         .dropdown-menu {
-            position: absolute;
-            top: 60px;
-            right: 20px;
-            background: white;
-            border: 1px solid #ccc;
-            border-radius: 0.5rem;
-            padding: 0.5rem 1rem;
             display: none;
         }
 
@@ -159,7 +196,6 @@
             display: block;
         }
 
-        /* Content */
         .main-content {
             margin-left: 250px;
             margin-top: 64px;
@@ -191,6 +227,16 @@
                 display: none;
             }
         }
+        .sidebar.collapsed {
+            width: 72px;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed .menu-item span:not(.icon),
+        .sidebar.collapsed .logo-text {
+            display: none;
+        }
+
     </style>
 </head>
 <body>
@@ -202,16 +248,16 @@
             <div class="logo-text">Dashboard</div>
         </a>
         <nav class="menu">
-            <a href="/topics" class="menu-item">
+            <a href="/topics" class="menu-item {{ request()->is('topics') ? 'active' : '' }}">
                 <span class="icon">📁</span>
                 <span>Topics</span>
             </a>
 
             @auth
                 @if(auth()->user()->isSupervisor())
-                    <a href="{{ route('supervisor.dashboard') }}" class="menu-item">
+                    <a href="{{ route('supervisor.dashboard') }}" class="menu-item {{ request()->routeIs('supervisor.dashboard') ? 'active' : '' }}">
                         <span class="icon">👨‍🏫</span>
-                        <span>Supervisor Dashboard</span>
+                        <span>Supervisor</span>
                         @php
                             $pendingCount = auth()->user()->supervisor->pendingTopics()->count();
                         @endphp
@@ -219,7 +265,7 @@
                             <span class="badge">{{ $pendingCount }}</span>
                         @endif
                     </a>
-                    <a href="{{ route('test-topic') }}" class="menu-item">
+                    <a href="{{ route('test-topic') }}" class="menu-item {{ request()->routeIs('test-topic') ? 'active' : '' }}">
                         <span class="icon">📥</span>
                         <span>Import Topics</span>
                     </a>
@@ -230,10 +276,12 @@
 
     <!-- Navbar -->
     <nav class="navbar">
+        <button id="sidebarToggle" class="text-white md:hidden">
+            ☰
+        </button>
+
         <div class="nav-title">
-            <a href="#" class="logo">
-                <div class="logo-icon">sTMS</div>
-            </a>
+            <span style="color: white; font-size: 1.25rem;">Welcome, {{ Auth::user()->name }}</span>
         </div>
         <div class="profile-section">
             <div class="profile-pic">
@@ -244,10 +292,10 @@
                 @endif
             </div>
             <div class="profile-name position-relative">
-                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                    {{ Auth::user()->name }}
-                </a>
-                <div class="dropdown-menu">
+                <button id="profileDropdownBtn" style="background: none; border: none; color: white; font-weight: 500;">
+                    {{ Auth::user()->name }} ▾
+                </button>
+                <div class="dropdown-menu" id="profileDropdown">
                     <a class="dropdown-item" href="{{ route('profile.edit') }}">Profile</a>
                     <a class="dropdown-item" href="{{ route('logout') }}"
                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
@@ -260,13 +308,32 @@
             </div>
         </div>
     </nav>
-
-    <!-- Main Content -->
     <div class="main-content">
         <main class="py-4">
             @yield('content')
         </main>
     </div>
 </div>
+<script>
+    // Simple toggle for dropdown
+    document.getElementById('profileDropdownBtn')?.addEventListener('click', function () {
+        const dropdown = document.getElementById('profileDropdown');
+        dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Close dropdown if clicked outside
+    document.addEventListener('click', function(event) {
+        const dropdown = document.getElementById('profileDropdown');
+        const btn = document.getElementById('profileDropdownBtn');
+        if (!dropdown.contains(event.target) && !btn.contains(event.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+    document.getElementById('sidebarToggle').addEventListener('click', function () {
+        document.querySelector('.sidebar').classList.toggle('collapsed');
+        document.querySelector('.navbar').classList.toggle('collapsed');
+        document.querySelector('.main-content').classList.toggle('collapsed');
+    });
+</script>
 </body>
 </html>
